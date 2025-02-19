@@ -38,6 +38,12 @@ void setup() {
   while(1);
   }
 
+  readChar.writeValue(0);
+  writeChar.writeValue(0);
+
+  BLE.advertise();
+  Serial.println("Bluetooth device active");
+
 }
 
 void loop() {
