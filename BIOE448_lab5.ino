@@ -2,10 +2,11 @@
 // February 19th, 2025
 // Daniela Najmias Lang, Matan Blitz, Marc De Guzman
 
-const int trigPin = 11;
-const int echoPin = 12;
+const int trigPin = 8;
+const int echoPin = 10;
 long duration;
 int distanceCm, distanceInch;
+long previousMillis = 0;
 
 const int red = 2; // red LED
 const int green = 3; // green LED
@@ -17,12 +18,6 @@ BLEService newService("180A"); // creating the service
 BLEByteCharacteristic readChar("2A57", BLERead);
 BLEByteCharacteristic writeChar("2A58", BLEWrite);
 
-// Naming the device
-BLE.setDeviceName("DanielaMatanMarc);
-BLE.setAdvertisedService(newService);
-newService.addCharacteristic(readChar);
-newService.addCharacteristic(writeChar);
-BLE.addService(newService);
 
 void setup() {
   pinMode(trigPin, OUTPUT);
@@ -30,6 +25,13 @@ void setup() {
   pinMode(red, OUTPUT);
   pinMode(green, OUTPUT);
   Serial.begin(9600);
+
+  // Naming the device
+  BLE.setLocalName("DanielaMatanMarc");
+  BLE.setAdvertisedService(newService);
+  newService.addCharacteristic(readChar);
+  newService.addCharacteristic(writeChar);
+  BLE.addService(newService);
 
   // Adding loop for Bluetooth
   while(!Serial);
@@ -48,36 +50,41 @@ void setup() {
 
 void loop() {
 
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
+  BLEDevice central = BLE.central(); // wait for a BLE central
 
-  duration = pulseIn(echoPin, HIGH); //record the time
-  
-  //Uncomment for calculating rate
-  // Serial.println(duration);
+  if (central) {  // if a central is connected to the peripheral
+    Serial.print("Connected to central: ");
+    
+    Serial.println(central.address()); // print the central's BT address
+    
+    digitalWrite(LED_BUILTIN, HIGH); // turn on the LED to indicate the connection
 
-  distanceCm = duration * 0.017; // from data sheet information
-  distanceInch = duration * 0.007; // converted from cm
-  Serial.print("Distance: ");
-  Serial.print(distanceCm);
-  Serial.print(" cm/");
-  Serial.print(distanceInch);
-  Serial.println(" in");
-  delay(1000); // delay so you can read the distance (slows refresh rate)
+    while (central.connected()) { // while the central is connected:
+      long currentMillis = millis();
+      
+      if (currentMillis - previousMillis >= 200) { 
+        previousMillis = currentMillis;
 
-  // this is for turning the red LED on if the distance is more than 5cm, otherwise, it will turn on the green LED
-  if (distanceCm < range) {
-    digitalWrite(green, HIGH);
-    digitalWrite(red, LOW);
-  }
-  else {
-    digitalWrite(green, LOW);
-    digitalWrite(red, HIGH);
+        digitalWrite(trigPin, LOW);
+        delayMicroseconds(2);
+        digitalWrite(trigPin, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(trigPin, LOW);
+
+        duration = pulseIn(echoPin, HIGH);
+        distanceCm = duration * 0.034 / 2;
+
+        Serial.print("Distance: ");
+        Serial.print(distanceCm);
+        Serial.println(" cm");
+
+        delay(10);
+        readChar.writeValue(distanceCm);
+        Serial.println("Distance printed to peripheral");
+      }
     }
 
-    delayMicroseconds(1000);
+    Serial.print("Disconnected from central: ");
+    Serial.println(central.address());
+  }
 }
-
