@@ -17,6 +17,12 @@ BLEService newService("180A"); // creating the service
 BLEByteCharacteristic readChar("2A57", BLERead);
 BLEByteCharacteristic writeChar("2A58", BLEWrite);
 
+// Naming the device
+BLE.setDeviceName("DanielaMatanMarc);
+BLE.setAdvertisedService(newService);
+newService.addCharacteristic(readChar);
+newService.addCharacteristic(writeChar);
+BLE.addService(newService);
 
 void setup() {
   pinMode(trigPin, OUTPUT);
