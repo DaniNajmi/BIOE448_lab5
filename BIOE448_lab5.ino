@@ -26,6 +26,7 @@ void setup() {
     while(1);
   }
 
+  BLE.setLocalName("DanielaMatanMarc");
   BLE.setDeviceName("DanielaMatanMarc");
   BLE.setAdvertisedService(newService);
   newService.addCharacteristic(readChar);
@@ -52,7 +53,10 @@ void loop() {
 
     while (central.connected()) { // while the central is connected:
       long currentMillis = millis();
-      
+
+      if (writeChar.written()) {
+        if (writeChar.value()) {
+        
       if (currentMillis - previousMillis >= 200) { 
         previousMillis = currentMillis;
 
@@ -73,6 +77,9 @@ void loop() {
         readChar.writeValue(distanceCm);
         Serial.println("Distance printed to peripheral");
       }
+
+      }
+        }
     }
 
     Serial.print("Disconnected from central: ");
