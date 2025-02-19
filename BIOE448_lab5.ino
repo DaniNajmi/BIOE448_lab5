@@ -11,12 +11,26 @@ const int red = 2; // red LED
 const int green = 3; // green LED
 const int range = 5; // range for changing from green to red based on distance in cm
 
+// Including the libraries
+#include <ArduinoBLE.h>
+BLEService newService("180A"); // creating the service
+BLEByteCharacteristic readChar("2A57", BLERead);
+BLEByteCharacteristic writeChar("2A58", BLEWrite);
+
+
 void setup() {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
   pinMode(red, OUTPUT);
   pinMode(green, OUTPUT);
   Serial.begin(9600);
+
+  // Adding loop for Bluetooth
+  while(!Serial);
+  if (!BLE.begin()){
+  Serial.println("Waiting for ArduinoBLE");
+  while(1);
+  }
 
 }
 
